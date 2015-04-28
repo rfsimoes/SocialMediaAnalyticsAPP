@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta chartset='utf-8'/>
+<title>Mood-India</title>
+<link id='bootstrap-style' href="/static/css/bootstrap.css" rel="stylsheet"/>
+<link id="base-style" href="/static/css/style.css" rel="stylsheet"/>
+<script src="/static/js/jquery-1.7.2.min.js"></script>
+<script src="/static/js/jquery-ui-1.8.21.custom.min.js"></script>
+<script src="/static/js/jquery.flot.js"></script>
+<script src="/static/js/jquery.flot.pie.js"></script>
+<script>
+function showplots(){
+	/*----- Pie chart start -----*/
+	var data = [
+	{label: "Positive",data:{{positivesentiment}}},
+	{label: "Negative",data:{{negativesentiment}}},
+	{label:"Neutral",data:{{neutralsentiment}}}
+	];
+	if($("#mipiechart").length)
+	{
+		$.plot($("#mipiechart"),data,
+			{
+			series:{
+			pie:{
+			show: true
+			}
+			},
+			grid: {
+			hoverable :true,
+			clickable: true
+			},
+			legend:{
+			show:false
+			},
+			colors:["#78CD51","#FA5833","#FABB3D","#2FABE9"]
+			});
+
+		function pirHover(even,post,obj)
+		{
+			if(!obj)
+				return;
+			percent = parseFloat(obj.series.percent).toFixed(2);
+			$("#hover").html('<span style="font-weight:bold;color:'+obj.series.color+'">'+obj.series.label+'('+percent+'%)</span>');
+		}
+
+		$("#mipiechart").blind("plothover",pieHover);
+	}
+
+	/* ----- Pie chart end ----- */
+	/* ----- hourlychart start -----*/
+	if($("#mihourlychart").length)
+	{
+		var totaldata=[
+		{% for key,val in total.items %}
+		[{{key}},{{val}}],
+		{% end for %}
+		];
+		var positivedata = [
+		{% for key,val in positive.items %}
+		[{{key}},{{val}}],
+		{% endfor %}
+		];
+		var negativedata=[
+		{% for key,val in negative.items %}
+		[{{key}},{{val}}],
+		{% end for %}
+		];
+		var neutraldata=[
+		{% for key,val in neutraldata.items %}
+		[{{key}},{{val}}],
+		{% endfor %}
+		];
+
+		var plot=$.plot($("#mihourlychart"),
+			[{data:totaldata,label:"Total Tweets"},
+			{data : positivedata,label : "Positive Tweets"},
+			{data:negativedata,label:"Negative Tweets"},
+			{data:neutraldata,label:"Neutral Tweets"}],{
+				series:{
+					lines:{ show:true,
+						lineWidth:2
+					},
+					points:{show:true,
+						lineWidth:2
+					},
+					shadowSize:0
+				},
+				grid:{hoverable:true,
+				clickable: true,
+				tickColor:"#f9f9f9",
+				borderWidth: 0
+			},
+			legend:{
+				show:false
+			},
+			colors:["#FABE9","#74DF00","#FF0000","#eae874"],
+			xaxis:{ticks:15,tickDecimals:0},
+			yaxis:{tickDecimals:0},
+		});
+	}
+}
+</script>
+</head>
+<body onload="showplots()">
+<div class="container-fluid">
+
+<div class="row-fluid">
+<div id="content" class="span11">
+<div class="row-fluid">
+<div class="stats-date span3">
+<div>Last 24 hours statistics</div>
+</div>
+<div class="stats span9">
+<div class="stat">
+<div class="left">
+<div class="number blue">{{totaltweets}}</div>
+<div class="title"><span class="color blue"></span>Total Tweets</div>
