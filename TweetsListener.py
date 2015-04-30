@@ -14,8 +14,8 @@ import boto.sqs
 
 conn = boto.sqs.connect_to_region(
     'us-east-1',
-    aws_access_key_id='<enter key>',
-    aws_secret_access_key='<enter secret>')
+    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
+    aws_secret_access_key='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')
 
 q = conn.get_all_queues(prefix='arsh-queue')
 
