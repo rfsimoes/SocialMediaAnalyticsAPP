@@ -69,8 +69,16 @@ def home(request):
             neutral[entry] = hourlyaggregate[entry]['neutralsentiment']
 
     return render_to_response('index.html', {'totaltweets': totaltweets,
-                                             'positivesentiment': positivesentiment, 'negativesentiment':
-        negative, 'neutralsentiment': neutralsentiment, 'pospercent': pospercent,
-                                             'negpercent': negpercent, 'neupercent': neupercent, 'hashtags': hashtags,
-                                             'hourlyaggregate': hourlyaggregate, 'total': total, 'positive': positive,
-                                             'negative': negative, 'neutral': neutral, 'toptweets': toptweets})
+                                             'positivesentiment': positivesentiment,
+                                             'negativesentiment': negativesentiment,
+                                             'neutralsentiment': neutralsentiment,
+                                             'pospercent': pospercent,
+                                             'negpercent': negpercent,
+                                             'neupercent': neupercent,
+                                             'hashtags': hashtags,
+                                             'hourlyaggregate': hourlyaggregate,
+                                             'total': total,
+                                             'positive': positive,
+                                             'negative': negative,
+                                             'neutral': neutral,
+                                             'toptweets': toptweets})
