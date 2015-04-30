@@ -5,10 +5,10 @@ from tweepy import Stream
 from boto.sqs.message import Message
 import cPickle
 
-consumer_key = '<enter key>'
-consumer_secret = '<enter secret>'
-access_token = '<enter access token>'
-access_token_secret = '<enter access secret>'
+consumer_key = 'WIGpzXr5ruz2pac5r93bWbgPX'
+consumer_secret = 'zxnJmq0OgeweZtcD4veZdAXJqNqTjVjbnaMiQVtWrw3mPm8TnO'
+access_token = '433342420-XqBbNHsEQiK9ccVzyOJeN1cjgCrRqSlB3S8bKoaI'
+access_token_secret = '2EW7uTlqNGACpnMA8FVFiw7SWlUKcGUthUkvG71GEVxDa'
 
 import boto.sqs
 
