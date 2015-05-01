@@ -163,10 +163,10 @@ def analyzeTweet(tweetdic):
 
     #_____ Hourly Aggregate _____
     hour = tweetdic['hour']
-    valuedic['hourlyaggregate']['hour']['positivesentiment'] += tweetdic['positivesentiment']
-    valuedic['hourlyaggregate']['hour']['negativesentiment'] += tweetdic['negativesentiment']
-    valuedic['hourlyaggregate']['hour']['neutralsentiment'] += tweetdic['neutralsentiment']
-    valuedic['hourlyaggregate']['hour']['positivesentiment'] += 1
+    valuedic['hourlyaggregate'][hour]['positivesentiment'] += tweetdic['positivesentiment']
+    valuedic['hourlyaggregate'][hour]['negativesentiment'] += tweetdic['negativesentiment']
+    valuedic['hourlyaggregate'][hour]['neutralsentiment'] += tweetdic['neutralsentiment']
+    valuedic['hourlyaggregate'][hour]['positivesentiment'] += 1
 
     #_____ Top Hashtags _____
     tagsdic = valuedic['hashtags']
