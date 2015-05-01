@@ -36,7 +36,7 @@ def setupConsumer():
     sent_file = open('AFINN-111.txt')
     sent_lines = sent_file.readlines()
     for line in sent_lines:
-        s = line.split("")
+        s = line.split()
         TERMS[s[0]] = s[1]
     sent_file.close()
 
@@ -46,7 +46,7 @@ def setupConsumer():
         aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
         aws_secret_access_key='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')
 
-    q = conn.get_queue('arsh-queue')
+    q = conn.get_queue('twitter-queue')
     queuecount = q.count()
     print "Queue count = " + str(queuecount)
 
