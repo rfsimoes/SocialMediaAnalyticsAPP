@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+#from pymongo import MongoClient
 import datetime
 import boto.sqs
 from boto.sqs.message import Message
@@ -12,6 +12,7 @@ import ast
 import random
 import sys
 import unicodedata
+import boto.dynamodb
 
 parseaddic = {}
 aggregatedic = {}
@@ -29,6 +30,7 @@ def setupConsumer():
     global client
     global db
     global keyword
+    global table
 
     # _____ Initialize keyword list _____
     keyword = 'india'
@@ -52,10 +54,14 @@ def setupConsumer():
     print "Queue count = " + str(queuecount)
 
     #_____ Connect to MongoDB _____
-    client = MongoClient()
+    """client = MongoClient()
     client = MongoClient('localhost', 27017)
-    db = client['myapp']
+    db = client['myapp']"""
 
+    #_____ Connect to DynamoDB _____
+    # create a connection to the service
+    connDB = boto.dynamodb.connect_to_region('us-east-1', aws_access_key_id='AKIAIMWTUE6J5LGNZBMA', aws_secret_access_key='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')
+    table = connDB.get_table('twitter_stats')
 
 ######## Find Sentiment Function ########
 def findsentiment(tweet):
@@ -231,9 +237,18 @@ def postProcessing():
     valuedic['metadata'] = {'date': str(date.today()), 'key': keyword}
 
     #_____ Insert into MongoDB _____
-    print valuedic
+    """print valuedic
     print "Inserting data into MongoDB"
-    postid = db.myapp_micollection.insert(valuedic)
+    postid = db.myapp_micollection.insert(valuedic)"""
+
+    #_____ Insert into DynamoDB _____
+    print valuedic
+    print "Inserting data into DynamoDB"
+    #postid = table.new_item(valuedic)
+    postid = table.new_item(hash_key='total_tweets',range_key=str(valuedic['totaltweets']))
+    #print "POST ID:"
+    #print postid
+    postid.put()
 
 
 ######## Main Function: Consigure consumeCount ########
