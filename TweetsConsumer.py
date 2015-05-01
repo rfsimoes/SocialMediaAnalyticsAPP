@@ -11,6 +11,7 @@ import re
 import ast
 import random
 import sys
+import unicodedata
 
 parseaddic = {}
 aggregatedic = {}
@@ -123,7 +124,7 @@ def analyzeTweet(tweetdic):
 
     if not aggregatedic.has_key(keyword):
         valuedic = {'totaltweets': 0,
-                    'positivesentiment': 0, 'negativesentiment': 0, 'hashtags': {}, 'toptweets': {},
+                    'positivesentiment': 0, 'negativesentiment': 0,'neutralsentiment':0, 'hashtags': {}, 'toptweets': {},
                     'totaltweets': 0, 'hourlyaggregate': {
         '0': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
         '1': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
@@ -253,8 +254,8 @@ def main():
         if len(rs) > 0:
             for m in rs:
                 post = m.get_body()
-                deserializedpost = cPickle.loads(post)
-                postdic = json.loads()
+                deserializedpost = cPickle.loads(str(post))
+                postdic = json.loads(deserializedpost)
 
                 parseTweet(postdic)
                 analyzeTweet(parseaddic)
