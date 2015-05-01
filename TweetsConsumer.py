@@ -262,13 +262,13 @@ def main():
 
             conn.delete_message_batch(q, rs)
 
-    queuecount = q.count()
-    print "Remaining Queue count= " + str(queuecount)
-    print "Completed Consuming..."
-    print "Starting post processing..."
-    postProcessing()
-    print "Completed post processing..."
-    print "Done!"
+            queuecount = q.count()
+            print "Remaining Queue count= " + str(queuecount)
+            print "Completed Consuming..."
+            print "Starting post processing..."
+            postProcessing()
+            print "Completed post processing..."
+            print "Done!"
 
 ######## Entry Point #####
 if __name__ == '__main__':
