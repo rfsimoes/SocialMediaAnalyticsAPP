@@ -34,10 +34,10 @@ def setupConsumer():
     keyword = 'india'
 
     #_____ Load Sentiments Dict _____
-    sent_file = open('AFINN-111.txt')
+    sent_file = open('AFINN-111-2.txt')
     sent_lines = sent_file.readlines()
     for line in sent_lines:
-        s = line.split()
+        s = line.split(".")
         TERMS[s[0]] = s[1]
     sent_file.close()
 
@@ -260,7 +260,7 @@ def main():
                 parseTweet(postdic)
                 analyzeTweet(parseaddic)
 
-        conn.delete_message_batch(q, rs)
+            conn.delete_message_batch(q, rs)
 
     queuecount = q.count()
     print "Remaining Queue count= " + str(queuecount)
