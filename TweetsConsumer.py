@@ -131,7 +131,7 @@ def analyzeTweet(tweetdic):
     if not aggregatedic.has_key(keyword):
         valuedic = {'totaltweets': 0,
                     'positivesentiment': 0, 'negativesentiment': 0,'neutralsentiment':0, 'hashtags': {}, 'toptweets': {},
-                    'totaltweets': 0, 'hourlyaggregate': {
+                    'totalretweets': 0, 'hourlyaggregate': {
         '0': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
         '1': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
         '2': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
@@ -199,7 +199,7 @@ def analyzeTweet(tweetdic):
 
 ######## Post Processing Function ########
 def postProcessing():
-    print aggregatedic
+    #print aggregatedic
     valuedic = aggregatedic[keyword]
 
     # _____ Top 10 Hashtags _____
@@ -242,13 +242,44 @@ def postProcessing():
     postid = db.myapp_micollection.insert(valuedic)"""
 
     #_____ Insert into DynamoDB _____
-    print valuedic
+    #print valuedic
+    id_stat = valuedic['_id']
+    total_tweets = valuedic['totaltweets']
+    positive_tweets = valuedic['positivesentiment']
+    neutral_tweets = valuedic['neutralsentiment']
+    negative_tweets = valuedic['negativesentiment']
+    #hashtags = valuedic['hashtags']
+    top_tweets = valuedic['toptweets']
+    total_retweets = valuedic['totalretweets']
+    metadata = valuedic['metadata']
+    hourly_aggregate = valuedic['hourlyaggregate']
+    print 'id_stat = ', id_stat
+    print 'metadata = ', metadata
+    print 'total_tweets = ', total_tweets
+    print 'positive_tweets = ', positive_tweets
+    print 'neutral_tweets = ', neutral_tweets
+    print 'negative_tweets = ', negative_tweets
+    print 'hashtags = ', hashtags
+    print 'top_tweets = ', top_tweets
+    print 'total_retweets = ', total_retweets
+    print 'hourly_aggregate = ', hourly_aggregate
+    item_data = {
+                    'total_tweets' : total_tweets,
+                    'positive_sentiment': positive_tweets,
+                    'neutral_sentiment' : neutral_tweets,
+                    'negative_sentiment' : negative_tweets,
+                    'hashtags': hashtags,
+                    'top_tweets': top_tweets,
+                    'total_retweets' : total_retweets,
+                    'hourly_aggregate': hourly_aggregate
+                 };
     print "Inserting data into DynamoDB"
     #postid = table.new_item(valuedic)
-    postid = table.new_item(hash_key='total_tweets',range_key=str(valuedic['totaltweets']))
+    postid = table.new_item(hash_key=id_stat, range_key=metadata, attrs=item_data)
     #print "POST ID:"
     #print postid
     postid.put()
+
 
 
 ######## Main Function: Consigure consumeCount ########
