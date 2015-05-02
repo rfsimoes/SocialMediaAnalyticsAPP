@@ -23,6 +23,13 @@ global client
 global db
 global keyword
 
+#Conexao
+def connect():
+    conn = boto.dynamodb.connect_to_region('us-east-1',
+    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
+    aws_secret_access_key='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')
+    return conn
+
 ######## Setup Consumer Function ########
 def setupConsumer():
     global conn
@@ -60,8 +67,8 @@ def setupConsumer():
 
     #_____ Connect to DynamoDB _____
     # create a connection to the service
-    connDB = boto.dynamodb.connect_to_region('us-east-1', aws_access_key_id='AKIAIMWTUE6J5LGNZBMA', aws_secret_access_key='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')
-    table = connDB.get_table('twitter_stats')
+    connDB = connect()
+    table = connDB.get_table('twitter_stats_table')
 
 ######## Find Sentiment Function ########
 def findsentiment(tweet):
@@ -242,45 +249,58 @@ def postProcessing():
     postid = db.myapp_micollection.insert(valuedic)"""
 
     #_____ Insert into DynamoDB _____
-    #print valuedic
+    addItem(valuedic)
+
+#Adicao de dados a base de dados
+def addItem(valuedic):
+    print 'A inserir dados na Base de Dados'
     id_stat = valuedic['_id']
     total_tweets = valuedic['totaltweets']
     positive_tweets = valuedic['positivesentiment']
     neutral_tweets = valuedic['neutralsentiment']
     negative_tweets = valuedic['negativesentiment']
-    #hashtags = valuedic['hashtags']
+    hashtags = valuedic['hashtags']
     top_tweets = valuedic['toptweets']
     total_retweets = valuedic['totalretweets']
     metadata = valuedic['metadata']
     hourly_aggregate = valuedic['hourlyaggregate']
-    print 'id_stat = ', id_stat
-    print 'metadata = ', metadata
-    print 'total_tweets = ', total_tweets
-    print 'positive_tweets = ', positive_tweets
-    print 'neutral_tweets = ', neutral_tweets
-    print 'negative_tweets = ', negative_tweets
-    print 'hashtags = ', hashtags
-    print 'top_tweets = ', top_tweets
-    print 'total_retweets = ', total_retweets
-    print 'hourly_aggregate = ', hourly_aggregate
+    conn = connect()
+    table = conn.get_table('twitter_stats_table')
     item_data = {
-                    'total_tweets' : total_tweets,
-                    'positive_sentiment': positive_tweets,
-                    'neutral_sentiment' : neutral_tweets,
-                    'negative_sentiment' : negative_tweets,
-                    'hashtags': hashtags,
-                    'top_tweets': top_tweets,
-                    'total_retweets' : total_retweets,
-                    'hourly_aggregate': hourly_aggregate
-                 };
-    print "Inserting data into DynamoDB"
-    #postid = table.new_item(valuedic)
-    postid = table.new_item(hash_key=id_stat, range_key=metadata, attrs=item_data)
-    #print "POST ID:"
-    #print postid
-    postid.put()
+        'total_tweets': str(total_tweets),
+        'positive_sentiment':  str(positive_tweets),
+        'neutral_sentiment': str(neutral_tweets),
+        'negative_sentiment': str(negative_tweets),
+        'hashtags': str(hashtags),
+        'top_tweets': str(top_tweets),
+        'total_retweets': str(total_retweets),
+        'hourly_aggregate': str(hourly_aggregate)
+    }
 
+    item = table.new_item(
+        hash_key=str(id_stat),
+        range_key=str(metadata),
+        attrs=item_data
+    )
+    item.put()
+    print '--Dados Inseridos com sucesso--'
 
+#Para criar a base de dados
+# ATENCAO QUE E PERIGOSO USAR ISTO
+def create_database():
+    conn = connect()
+    schemaTable = conn.create_schema(
+        hash_key_name='id_stat',
+        hash_key_proto_value=str,
+        range_key_name='metadata',
+        range_key_proto_value=str
+    )
+    table = conn.create_table(
+        name = 'twitter_stats_table',
+        schema = schemaTable,
+        read_units = 1,
+        write_units = 1
+    )
 
 ######## Main Function: Consigure consumeCount ########
 def main():
