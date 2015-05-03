@@ -6,12 +6,15 @@ import boto.dynamodb
 today = str(date.today())
 
 
-#Conexao
+# This method makes a connection to DynamoDB
 def connect():
+    print 'Connecting to DynamoDB...'
     conn = boto.dynamodb.connect_to_region('us-east-1',
     aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
     aws_secret_access_key='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')
+    print 'Connected!\n'
     return conn
+
 
 # Connect to DynamoDB
 connDB = connect()
@@ -19,7 +22,7 @@ table = connDB.get_table('twitter_stats_table')
 
 def home():
     #results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
-    # results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
+    #results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
     keyy = 'india'
     hash = today + '/' + keyy
     range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
@@ -81,6 +84,7 @@ def home():
         negative[entry] = hourlyaggregate[entry]['negativesentiment']
         neutral[entry] = hourlyaggregate[entry]['neutralsentiment']
     """
+
     print '-----------------------------'
     print '-----TWITTER STATISTICS------'
     print '-----------------------------'
