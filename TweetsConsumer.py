@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+#from pymongo import MongoClient
 import datetime
 import boto.sqs
 from boto.sqs.message import Message
@@ -12,29 +12,44 @@ import ast
 import random
 import sys
 import unicodedata
+import boto.dynamodb
 
 parseaddic = {}
 aggregatedic = {}
 TERMS = {}
 global conn
+global connDB
 global q
 global client
 global db
 global keyword
 
+
+# This method makes a connection to DynamoDB
+def connect():
+    print 'Connecting to DynamoDB...'
+    connDB = boto.dynamodb.connect_to_region('us-east-1',
+    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
+    aws_secret_access_key='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')
+    print 'Connected!\n'
+    return connDB
+
+
 ######## Setup Consumer Function ########
 def setupConsumer():
     global conn
+    global connDB
     global q
     global client
     global db
     global keyword
+    global table
 
     # _____ Initialize keyword list _____
     keyword = 'india'
 
-    #_____ Load Sentiments Dict _____
-    sent_file = open('AFINN-111-2.txt')
+    #_____ Load Sentiments Dictionary _____
+    sent_file = open('AFINN-111.txt')
     sent_lines = sent_file.readlines()
     for line in sent_lines:
         s = line.split(".")
@@ -42,22 +57,24 @@ def setupConsumer():
     sent_file.close()
 
     #_____ Connect to SQS Queue _____
+    print 'Connecting to SQS...'
     conn = boto.sqs.connect_to_region(
         "us-east-1",
         aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
         aws_secret_access_key='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')
+    print 'Connected!\n'
 
     q = conn.get_queue('twitter-queue')
     queuecount = q.count()
-    print "Queue count = " + str(queuecount)
+    print "Queue count = " + str(queuecount) + "\n"
 
-    #_____ Connect to MongoDB _____
-    client = MongoClient()
-    client = MongoClient('localhost', 27017)
-    db = client['myapp']
+    #_____ Connect to DynamoDB _____
+    connDB = connect()
+    table = connDB.get_table('twitter_stats_table')
 
 
 ######## Find Sentiment Function ########
+# This function computes the sentiment of the parsed tweet
 def findsentiment(tweet):
     splitTweet = tweet.split()
     sentiment = 0.0
@@ -68,6 +85,7 @@ def findsentiment(tweet):
 
 
 ######## Parse Tweet Function ########
+# This function parses the field in the tweet object (JSON object)
 def parseTweet(tweet):
     if tweet.has_key('created_at'):
         createdat = tweet['created_at']
@@ -118,6 +136,7 @@ def parseTweet(tweet):
 
 
 ######## Analyze Tweet Function ########
+# This function analyzes and aggregates the results
 def analyzeTweet(tweetdic):
     text = tweetdic['text']
     text = text.lower()
@@ -125,7 +144,7 @@ def analyzeTweet(tweetdic):
     if not aggregatedic.has_key(keyword):
         valuedic = {'totaltweets': 0,
                     'positivesentiment': 0, 'negativesentiment': 0,'neutralsentiment':0, 'hashtags': {}, 'toptweets': {},
-                    'totaltweets': 0, 'hourlyaggregate': {
+                    'totalretweets': 0, 'hourlyaggregate': {
         '0': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
         '1': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
         '2': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
@@ -193,7 +212,7 @@ def analyzeTweet(tweetdic):
 
 ######## Post Processing Function ########
 def postProcessing():
-    print aggregatedic
+    #print aggregatedic
     valuedic = aggregatedic[keyword]
 
     # _____ Top 10 Hashtags _____
@@ -226,19 +245,66 @@ def postProcessing():
     valuedic['toptweets'] = sortedtoptweetsdic
     #print valuedic['toptweets']
 
-    #_____ Create Key for MongoDB document _____
+    #_____ Create Key for DynamoDB _____
     valuedic['_id'] = str(date.today()) + "/" + keyword
     valuedic['metadata'] = {'date': str(date.today()), 'key': keyword}
 
-    #_____ Insert into MongoDB _____
-    print valuedic
-    print "Inserting data into MongoDB"
-    postid = db.myapp_micollection.insert(valuedic)
+    #_____ Insert into DynamoDB _____
+    addItem(valuedic)
 
+#This function adds an item to DynamoDB
+def addItem(valuedic):
+    print 'Inserting data on DynamoDB...'
+    id_stat = valuedic['_id']
+    total_tweets = valuedic['totaltweets']
+    positive_tweets = valuedic['positivesentiment']
+    neutral_tweets = valuedic['neutralsentiment']
+    negative_tweets = valuedic['negativesentiment']
+    hashtags = valuedic['hashtags']
+    top_tweets = valuedic['toptweets']
+    total_retweets = valuedic['totalretweets']
+    metadata = valuedic['metadata']
+    hourly_aggregate = valuedic['hourlyaggregate']
+    table = connDB.get_table('twitter_stats_table')
+    item_data = {
+        'total_tweets': str(total_tweets),
+        'positive_sentiment':  str(positive_tweets),
+        'neutral_sentiment': str(neutral_tweets),
+        'negative_sentiment': str(negative_tweets),
+        'hashtags': str(hashtags),
+        'top_tweets': str(top_tweets),
+        'total_retweets': str(total_retweets),
+        'hourly_aggregate': str(hourly_aggregate)
+    }
+
+    item = table.new_item(
+        hash_key=str(id_stat),
+        range_key=str(metadata),
+        attrs=item_data
+    )
+    item.put()
+    print 'Data was successfully inserted!'
+
+
+# This function creates a new DynamoDB database
+def create_database():
+    connDB = connect()
+    schemaTable = connDB.create_schema(
+        hash_key_name='id_stat',
+        hash_key_proto_value=str,
+        range_key_name='metadata',
+        range_key_proto_value=str
+    )
+    table = connDB.create_table(
+        name = 'twitter_stats_table',
+        schema = schemaTable,
+        read_units = 1,
+        write_units = 1
+    )
 
 ######## Main Function: Consigure consumeCount ########
 def main():
-    print "Setting ip consumer..."
+    print "Setting up consumer...\n"
     setupConsumer()
     print "Completed consumer setup..."
 
@@ -264,11 +330,11 @@ def main():
 
             queuecount = q.count()
             print "Remaining Queue count= " + str(queuecount)
-            print "Completed Consuming..."
+            print "Completed Consuming...\n"
             print "Starting post processing..."
             postProcessing()
             print "Completed post processing..."
-            print "Done!"
+            print "Done!\n"
 
 ######## Entry Point #####
 if __name__ == '__main__':

@@ -3,23 +3,36 @@ import json
 from pymongo import MongoClient
 from collections import OrderedDict
 from datetime import date, timedelta
+import boto.dynamodb
+
 
 today = str(date.today())
 
-client = MongoClient()
-cliet = MongoClient('localhost', 27017)
-db = cliet['myapp']
 
+#Conexao
+def connect():
+    conn = boto.dynamodb.connect_to_region('us-east-1',
+    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
+    aws_secret_access_key='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')
+    return conn
+
+# Connect to DynamoDB
+connDB = connect()
+table = connDB.get_table('twitter_stats_table')
 
 def home(request):
-    results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
+    #results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
     # results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
+    key = 'india'
+    hash = today + '/' + key
+    range = "{'date': '" + today + "', 'key': '" + key + "'}"
+    results = table.get_item(hash_key=hash,range_key=range)
 
     for postdic in results:
-        totaltweets = postdic['totaltweets']
-        positivesentiment = postdic['positivesentiment']
-        negativesentiment = postdic['negativesentiment']
-        neutralsentiment = postdic['neutralsentiment']
+        totaltweets = postdic['total_tweets']
+        positivesentiment = postdic['positive_sentiment']
+        negativesentiment = postdic['negative_sentiment']
+        neutralsentiment = postdic['neutral_sentiment']
 
         pospercent = positivesentiment * 100 / totaltweets
         negpercent = negativesentiment * 100 / totaltweets
@@ -28,7 +41,7 @@ def home(request):
         hashtags = postdic['hashtags']
         hashtags = OrderedDict(sorted(hashtags.items(), key=lambda x: x[1], reverse=True))
 
-        toptweetsdic = postdic['toptweets']
+        toptweetsdic = postdic['top_tweets']
         sortednames = sorted(toptweetsdic, key=lambda x: toptweetsdic[x]['retweetcount'], reverse=True)
         sortedtoptweetsdic = OrderedDict()
 
@@ -50,7 +63,7 @@ def home(request):
             t.append(sortedtoptweetsdic[key]['retweetimage'])
             toptweets[key] = t
 
-        hourlyaggregate = postdic['hourlyaggregate']
+        hourlyaggregate = postdic['hourly_aggregate']
 
         total = {}
         positive = {}
