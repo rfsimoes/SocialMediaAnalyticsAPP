@@ -28,7 +28,7 @@ def home():
     print "| |                                                         | |"
     print "| |         WELCOME TO SOCIAL MEDIA ANALYTICS APP           | |"
     print "| |_________________________________________________________| |"
-    print "|_____________________________________________________________|"
+    print "|_____________________________________________________________|\n"
 
 
 
@@ -39,7 +39,12 @@ def home():
 
     while True:
         # Ask user which key he wants to search
-        user_input = raw_input("Please enter a key to search: ")
+        user_input = raw_input("Please enter a key to search [enter to exit]: ")
+
+        # Exit program
+        if user_input == "":
+            print "Exiting program...\n"
+            exit(0)
 
         # Define search key
         keyy = user_input
@@ -50,10 +55,11 @@ def home():
 
         # Check if hash_key exists
         if table.has_item(hash,range,True) == False:
-            print "Key does not exist!"
+            print "Key does not exist!\n"
         else:
             break
 
+    # Get the result from table
     results = table.get_item(hash_key=hash,range_key=range)
 
     #print 'Results: ' ,results
