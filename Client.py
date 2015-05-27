@@ -20,12 +20,40 @@ def connect():
 connDB = connect()
 table = connDB.get_table('twitter_stats_table')
 
+
+# This is the main method
 def home():
+    print " _____________________________________________________________"
+    print "|  _________________________________________________________  |"
+    print "| |                                                         | |"
+    print "| |         WELCOME TO SOCIAL MEDIA ANALYTICS APP           | |"
+    print "| |_________________________________________________________| |"
+    print "|_____________________________________________________________|"
+
+
+
     #results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
     #results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
-    keyy = 'india'
-    hash = today + '/' + keyy
-    range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+
+
+
+    while True:
+        # Ask user which key he wants to search
+        user_input = raw_input("Please enter a key to search: ")
+
+        # Define search key
+        keyy = user_input
+        # Define hash_key
+        hash = today + '/' + keyy
+        # Define range_key
+        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+
+        # Check if hash_key exists
+        if table.has_item(hash,range,True) == False:
+            print "Key does not exist!"
+        else:
+            break
+
     results = table.get_item(hash_key=hash,range_key=range)
 
     #print 'Results: ' ,results
