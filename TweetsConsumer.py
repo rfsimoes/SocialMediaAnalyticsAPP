@@ -1,4 +1,3 @@
-#from pymongo import MongoClient
 import datetime
 import boto.sqs
 from boto.sqs.message import Message
@@ -53,7 +52,7 @@ def setupConsumer():
     sent_lines = sent_file.readlines()
     for line in sent_lines:
         s = line.split(".")
-        TERMS[s[0]] = s[1]
+        TERMS[s[0].strip()] = int(s[1].strip())
     sent_file.close()
 
     #_____ Connect to SQS Queue _____
