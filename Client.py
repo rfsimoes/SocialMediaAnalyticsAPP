@@ -14,8 +14,8 @@ today = str(date.today())
 def connect():
     print 'Connecting to DynamoDB...'
     conn = boto.dynamodb.connect_to_region('us-east-1',
-    aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
-    aws_secret_access_key='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')
+                                           aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+                                           aws_secret_access_key='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')
     print 'Connected!\n'
     return conn
 
@@ -36,7 +36,7 @@ def home():
 
 
 
-    #results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
+    # results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
     #results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
 
 
@@ -58,16 +58,16 @@ def home():
         print "          Starting Listener..."
         print "----------------------------------------------"
         #Listener.run(keyy)
-        thread.start_new_thread(Listener.run(keyy), ("Thread-1", 2, ))
-        print "----------------------------------------------"
-        print "          Listener Completed!"
-        print "----------------------------------------------"
+        try:
+            thread.start_new_thread(Listener.run, (keyy,))
+        except:
+            print "Error thread Listener"
 
         #TweetsConsumer
         print "----------------------------------------------"
         print "          Starting Consumer..."
         print "----------------------------------------------"
-        Listener.run(keyy)
+        Consumer.main(keyy)
         print "----------------------------------------------"
         print "          Consumer Completed!"
         print "----------------------------------------------"
@@ -79,9 +79,9 @@ def home():
 
         # Check if hash_key exists
         #if table.has_item(hash,range,True) == False:
-            #print "Key does not exist!\n"
+        #print "Key does not exist!\n"
         #else:
-            #break
+        #break
 
     # Get the result from table
     #results = table.get_item(hash_key=hash,range_key=range)
@@ -105,7 +105,6 @@ def home():
     print "Searching for '" + keyy + "'...\n"
     search_service = domain.get_search_service()
     results = search_service.search(q=keyy)
-
 
     totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[2]
     positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[2]
@@ -175,9 +174,9 @@ def home():
     print 'Positive sentiment tweets: ', positivesentiment
     print 'Neutral sentiment tweets: ', neutralsentiment
     print 'Negative sentiment tweets: ', negativesentiment
-    print 'Positive percentage: ',pospercent
-    print 'Neutral percentage: ',neupercent
-    print 'Negative percentage: ',negpercent
+    print 'Positive percentage: ', pospercent
+    print 'Neutral percentage: ', neupercent
+    print 'Negative percentage: ', negpercent
     print
     #print 'Hashtags: ',hashtags
     """return render_to_response('index.html', {'totaltweets': totaltweets,
@@ -194,6 +193,7 @@ def home():
                                              'negative': negative,
                                              'neutral': neutral,
                                              'toptweets': toptweets})"""
+
 
 if __name__ == '__main__':
     home()

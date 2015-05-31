@@ -35,7 +35,7 @@ def connect():
 
 
 ######## Setup Consumer Function ########
-def setupConsumer():
+def setupConsumer(key):
     global conn
     global connDB
     global q
@@ -45,7 +45,7 @@ def setupConsumer():
     global table
 
     # _____ Initialize keyword list _____
-    keyword = 'india'
+    keyword = key
 
     #_____ Load Sentiments Dictionary _____
     sent_file = open('AFINN-111.txt')
@@ -302,9 +302,9 @@ def create_database():
     )
 
 ######## Main Function: Consigure consumeCount ########
-def main():
+def main(keyy):
     print "Setting up consumer...\n"
-    setupConsumer()
+    setupConsumer(keyy)
     print "Completed consumer setup..."
 
     # _____ enter no. of tweets to consume _____
@@ -337,7 +337,8 @@ def main():
 
 ######## Entry Point #####
 if __name__ == '__main__':
-    main()
+    key = 'benfica'
+    main(key)
 
 
 

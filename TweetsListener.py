@@ -7,6 +7,7 @@ import cPickle
 import logging
 import boto.sqs
 import sys
+import thread
 
 
 # Twitter API credentials
@@ -64,7 +65,10 @@ class StdOutListener(StreamListener):
         global maxCount
         global actualCount
         if actualCount==maxCount:
-            sys.exit('All tweets collected!')
+            print "----------------------------------------------"
+            print "          Listener Completed!"
+            print "----------------------------------------------"
+            thread.exit()
         print 'New tweet received'
         msg = cPickle.dumps(data)
         m = Message()
