@@ -2,6 +2,10 @@ import json
 from collections import OrderedDict
 from datetime import date, timedelta
 import boto.dynamodb
+import TweetsListener as Listener
+import TweetsConsumer as Consumer
+import thread
+
 
 today = str(date.today())
 
@@ -10,8 +14,8 @@ today = str(date.today())
 def connect():
     print 'Connecting to DynamoDB...'
     conn = boto.dynamodb.connect_to_region('us-east-1',
-    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
-    aws_secret_access_key='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')
+    aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+    aws_secret_access_key='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')
     print 'Connected!\n'
     return conn
 
@@ -48,27 +52,72 @@ def home():
 
         # Define search key
         keyy = user_input
+
+        #TweetsListener
+        print "----------------------------------------------"
+        print "          Starting Listener..."
+        print "----------------------------------------------"
+        #Listener.run(keyy)
+        thread.start_new_thread(Listener.run(keyy), ("Thread-1", 2, ))
+        print "----------------------------------------------"
+        print "          Listener Completed!"
+        print "----------------------------------------------"
+
+        #TweetsConsumer
+        print "----------------------------------------------"
+        print "          Starting Consumer..."
+        print "----------------------------------------------"
+        Listener.run(keyy)
+        print "----------------------------------------------"
+        print "          Consumer Completed!"
+        print "----------------------------------------------"
+
         # Define hash_key
-        hash = today + '/' + keyy
+        #hash = today + '/' + keyy
         # Define range_key
-        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+        #range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        if table.has_item(hash,range,True) == False:
-            print "Key does not exist!\n"
-        else:
-            break
+        #if table.has_item(hash,range,True) == False:
+            #print "Key does not exist!\n"
+        #else:
+            #break
 
     # Get the result from table
-    results = table.get_item(hash_key=hash,range_key=range)
+    #results = table.get_item(hash_key=hash,range_key=range)
 
     #print 'Results: ' ,results
 
+    print "----------------------------------------------"
+    print "          Starting CloudSearch..."
+    print "----------------------------------------------"
 
-    totaltweets = results['total_tweets']
-    positivesentiment = results['positive_sentiment']
-    negativesentiment = results['negative_sentiment']
-    neutralsentiment = results['neutral_sentiment']
+    # Connect to CloudSearch
+    print "Connecting to CloudSearch..."
+    connCS = boto.connect_cloudsearch2(aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+                                       aws_secret_access_key='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')
+    print "Connected!\n"
+
+    print "Searching for domain..."
+    domain = connCS.lookup('twitter-app')
+    print "Domain founded: ", domain
+
+    print "Searching for '" + keyy + "'...\n"
+    search_service = domain.get_search_service()
+    results = search_service.search(q=keyy)
+
+
+    totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[2]
+    positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[2]
+    negativesentiment = map(lambda x: x["fields"]["negative_sentiment"], results)[2]
+    neutralsentiment = map(lambda x: x["fields"]["neutral_sentiment"], results)[2]
+
+
+    #totaltweets = results['total_tweets']
+    #positivesentiment = results['positive_sentiment']
+    #negativesentiment = results['negative_sentiment']
+    #neutralsentiment = results['neutral_sentiment']
+
 
     pospercent = float(positivesentiment) * 100 / float(totaltweets)
     negpercent = float(negativesentiment) * 100 / float(totaltweets)

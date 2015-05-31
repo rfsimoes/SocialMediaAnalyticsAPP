@@ -28,8 +28,8 @@ global keyword
 def connect():
     print 'Connecting to DynamoDB...'
     connDB = boto.dynamodb.connect_to_region('us-east-1',
-    aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
-    aws_secret_access_key='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')
+    aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+    aws_secret_access_key='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')
     print 'Connected!\n'
     return connDB
 
@@ -59,8 +59,8 @@ def setupConsumer():
     print 'Connecting to SQS...'
     conn = boto.sqs.connect_to_region(
         "us-east-1",
-        aws_access_key_id='AKIAIMWTUE6J5LGNZBMA',
-        aws_secret_access_key='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')
+        aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+        aws_secret_access_key='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')
     print 'Connected!\n'
 
     q = conn.get_queue('twitter-queue')
