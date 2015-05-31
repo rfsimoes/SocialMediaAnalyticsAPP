@@ -35,12 +35,6 @@ def home():
     print "|_____________________________________________________________|\n"
 
 
-
-    # results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
-    #results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
-
-
-
     while True:
         # Ask user which key he wants to search
         user_input = raw_input("Please enter a key to search [enter to exit]: ")
@@ -57,7 +51,6 @@ def home():
         print "----------------------------------------------"
         print "          Starting Listener..."
         print "----------------------------------------------"
-        #Listener.run(keyy)
         try:
             thread.start_new_thread(Listener.run, (keyy,))
         except:
@@ -71,22 +64,25 @@ def home():
         print "----------------------------------------------"
         print "          Consumer Completed!"
         print "----------------------------------------------"
+        break
 
+        """"" Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
         # Define hash_key
-        #hash = today + '/' + keyy
+        hash = today + '/' + keyy
         # Define range_key
-        #range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        #if table.has_item(hash,range,True) == False:
-        #print "Key does not exist!\n"
-        #else:
-        #break
+        if table.has_item(hash,range,True) == False:
+            print "Key does not exist!\n"
+        else:
+            break
+        """
 
+    """ Ir buscar resultados ao dynamodb
     # Get the result from table
     #results = table.get_item(hash_key=hash,range_key=range)
-
-    #print 'Results: ' ,results
+    """
 
     print "----------------------------------------------"
     print "          Starting CloudSearch..."
@@ -98,18 +94,41 @@ def home():
                                        aws_secret_access_key='opsHC2vXn3O3kAhFIV8fQ5v1NUzGWQcNzQ5ZJYpK')
     print "Connected!\n"
 
+    # Search domain
     print "Searching for domain..."
     domain = connCS.lookup('twitter-app')
-    print "Domain founded: ", domain
+    print "Domain founded: ", domain.name
 
+    # Searching results
     print "Searching for '" + keyy + "'...\n"
     search_service = domain.get_search_service()
-    results = search_service.search(q=keyy)
+    # Search for key and sort results by date
+    results = search_service.search(q=keyy, sort=['id_stat asc'])
+    print "We found " + str(results.hits) + " results!"
 
-    totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[2]
-    positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[2]
-    negativesentiment = map(lambda x: x["fields"]["negative_sentiment"], results)[2]
-    neutralsentiment = map(lambda x: x["fields"]["neutral_sentiment"], results)[2]
+    # Show dates of results to users
+    for i in range(results.hits):
+        result_date = map(lambda x: x["fields"]["metadata"][10:20], results)[i]
+        print "[" + str(i) + "] " + str(result_date)
+
+    # Ask users which result they want to see
+    while True:
+        try:
+            input_number = int(raw_input('Pick a number in range 0-'+str(results.hits-1)+' >>> '))
+        except ValueError:
+            print "That's not a number!"
+        else:
+            if 0 <= input_number <= results.hits:
+                break
+            else:
+                print 'Out of range. Try again!'
+
+
+    # Calculate statistics
+    totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[input_number]
+    positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[input_number]
+    negativesentiment = map(lambda x: x["fields"]["negative_sentiment"], results)[input_number]
+    neutralsentiment = map(lambda x: x["fields"]["neutral_sentiment"], results)[input_number]
 
 
     #totaltweets = results['total_tweets']
@@ -122,12 +141,12 @@ def home():
     negpercent = float(negativesentiment) * 100 / float(totaltweets)
     neupercent = float(neutralsentiment) * 100 / float(totaltweets)
 
-    hashtags = results['hashtags']
+    #hashtags = results['hashtags']
     #hashtags = OrderedDict(sorted(hashtags.items(), key=lambda x: x[1], reverse=True))
 
-    toptweetsdic = results['top_tweets']
+    #toptweetsdic = results['top_tweets']
     #sortednames = sorted(toptweetsdic, key=lambda x: toptweetsdic[x]['retweetcount'], reverse=True)
-    sortedtoptweetsdic = OrderedDict()
+    #sortedtoptweetsdic = OrderedDict()
     """
     i = 0
     for k in sortednames:
@@ -148,7 +167,7 @@ def home():
         toptweets[key] = t
     """
 
-    hourlyaggregate = results['hourly_aggregate']
+    #hourlyaggregate = results['hourly_aggregate']
     """
     total = {}
     positive = {}
@@ -167,6 +186,7 @@ def home():
         neutral[entry] = hourlyaggregate[entry]['neutralsentiment']
     """
 
+    # Show statistics to users
     print '-----------------------------'
     print '-----TWITTER STATISTICS------'
     print '-----------------------------'
@@ -179,20 +199,6 @@ def home():
     print 'Negative percentage: ', negpercent
     print
     #print 'Hashtags: ',hashtags
-    """return render_to_response('index.html', {'totaltweets': totaltweets,
-                                             'positivesentiment': positivesentiment,
-                                             'negativesentiment': negativesentiment,
-                                             'neutralsentiment': neutralsentiment,
-                                             'pospercent': pospercent,
-                                             'negpercent': negpercent,
-                                             'neupercent': neupercent,
-                                             'hashtags': hashtags,
-                                             'hourlyaggregate': hourlyaggregate,
-                                             'total': total,
-                                             'positive': positive,
-                                             'negative': negative,
-                                             'neutral': neutral,
-                                             'toptweets': toptweets})"""
 
 
 if __name__ == '__main__':
