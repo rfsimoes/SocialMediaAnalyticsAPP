@@ -69,27 +69,27 @@ def home():
             except:
                 print "Error thread Listener"
 
-        # TweetsConsumer
-        print "----------------------------------------------"
-        print "          Starting Consumer..."
-        print "----------------------------------------------"
-        Consumer.main(keyy)
-        print "----------------------------------------------"
-        print "          Consumer Completed!"
-        print "----------------------------------------------"
+            #TweetsConsumer
+            print "----------------------------------------------"
+            print "          Starting Consumer..."
+            print "----------------------------------------------"
+            Consumer.main(keyy)
+            print "----------------------------------------------"
+            print "          Consumer Completed!"
+            print "----------------------------------------------"
+            break
 
-        """"" Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
+        #Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
         # Define hash_key
         hash = today + '/' + keyy
         # Define range_key
         range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        if table.has_item(hash,range,True) == False:
+        if table.has_item(hash, range, True) == False:
             print "Key does not exist!\n"
         else:
             break
-        """
 
 
     # Ir buscar resultados ao dynamodb
