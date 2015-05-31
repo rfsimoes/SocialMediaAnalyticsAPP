@@ -37,7 +37,7 @@ def home():
 
 
     # results = db.myapp_micollection.find({'metadata.key': 'india', 'metadata.date': today})
-    #results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
+    # results=db.myapp_micollection.find({'metadata.key':'query','metadata.date':'2013-06-30'})
 
 
 
@@ -73,20 +73,20 @@ def home():
         print "----------------------------------------------"
 
         # Define hash_key
-        #hash = today + '/' + keyy
+        hash = today + '/' + keyy
         # Define range_key
-        #range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        #if table.has_item(hash,range,True) == False:
-        #print "Key does not exist!\n"
-        #else:
-        #break
+        if table.has_item(hash, range, True) == False:
+            print "Key does not exist!\n"
+        else:
+            break
 
     # Get the result from table
-    #results = table.get_item(hash_key=hash,range_key=range)
+    results = table.get_item(hash_key=hash, range_key=range)
 
-    #print 'Results: ' ,results
+    print 'Results: ', results
 
     print "----------------------------------------------"
     print "          Starting CloudSearch..."
@@ -101,6 +101,12 @@ def home():
     print "Searching for domain..."
     domain = connCS.lookup('twitter-app')
     print "Domain founded: ", domain
+    print "Meter merdas la pra dentro"
+    doc_service = domain.get_document_service()
+    #for r in results:
+    doc_service.add(results.get('id_stat'), results)
+    result = doc_service.commit()
+    print "Tudo la dentro ", result
 
     print "Searching for '" + keyy + "'...\n"
     search_service = domain.get_search_service()
