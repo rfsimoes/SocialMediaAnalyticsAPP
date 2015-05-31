@@ -34,7 +34,6 @@ def home():
     print "| |_________________________________________________________| |"
     print "|_____________________________________________________________|\n"
 
-
     while True:
         # Ask user which key he wants to search
         user_input = raw_input("Please enter a key to search [enter to exit]: ")
@@ -47,7 +46,7 @@ def home():
         # Define search key
         keyy = user_input
 
-        #TweetsListener
+        # TweetsListener
         print "----------------------------------------------"
         print "          Starting Listener..."
         print "----------------------------------------------"
@@ -56,7 +55,7 @@ def home():
         except:
             print "Error thread Listener"
 
-        #TweetsConsumer
+        # TweetsConsumer
         print "----------------------------------------------"
         print "          Starting Consumer..."
         print "----------------------------------------------"
@@ -64,25 +63,23 @@ def home():
         print "----------------------------------------------"
         print "          Consumer Completed!"
         print "----------------------------------------------"
-        break
 
-        """"" Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
+        #Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
         # Define hash_key
         hash = today + '/' + keyy
         # Define range_key
         range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        if table.has_item(hash,range,True) == False:
+        if table.has_item(hash, range, True) == False:
             print "Key does not exist!\n"
         else:
             break
-        """
 
-    """ Ir buscar resultados ao dynamodb
+
+    # Ir buscar resultados ao dynamodb
     # Get the result from table
-    #results = table.get_item(hash_key=hash,range_key=range)
-    """
+    results = table.get_item(hash_key=hash, range_key=range)
 
     print "----------------------------------------------"
     print "          Starting CloudSearch..."
@@ -99,6 +96,13 @@ def home():
     domain = connCS.lookup('twitter-app')
     print "Domain founded: ", domain.name
 
+    print "Meter merdas la pra dentro"
+    doc_service = domain.get_document_service()
+    # for r in results:
+    doc_service.add(results.get('id_stat'), results)
+    result = doc_service.commit()
+    print "Tudo la dentro ", result
+
     # Searching results
     print "Searching for '" + keyy + "'...\n"
     search_service = domain.get_search_service()
@@ -114,7 +118,7 @@ def home():
     # Ask users which result they want to see
     while True:
         try:
-            input_number = int(raw_input('Pick a number in range 0-'+str(results.hits-1)+' >>> '))
+            input_number = int(raw_input('Pick a number in range 0-' + str(results.hits - 1) + ' >>> '))
         except ValueError:
             print "That's not a number!"
         else:
