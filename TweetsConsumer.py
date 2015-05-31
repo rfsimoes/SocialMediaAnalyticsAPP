@@ -22,6 +22,8 @@ global q
 global client
 global db
 global keyword
+global hashDB
+global rangeDB
 
 
 # This method makes a connection to DynamoDB
@@ -251,6 +253,10 @@ def postProcessing():
     #_____ Insert into DynamoDB _____
     addItem(valuedic)
 
+    # Update CloudSearch
+    update_cloudsearch()
+
+
 #This function adds an item to DynamoDB
 def addItem(valuedic):
     print 'Inserting data on DynamoDB...'
@@ -276,13 +282,40 @@ def addItem(valuedic):
         'hourly_aggregate': str(hourly_aggregate)
     }
 
+    global hashDB
+    global rangeDB
+    hashDB = str(id_stat)
+    rangeDB = str(metadata)
+
     item = table.new_item(
-        hash_key=str(id_stat),
-        range_key=str(metadata),
+        hash_key=hashDB,
+        range_key=rangeDB,
         attrs=item_data
     )
     item.put()
     print 'Data was successfully inserted!'
+
+
+def update_cloudsearch():
+    # Get the result from table
+    results = table.get_item(hash_key=hashDB, range_key=rangeDB)
+
+    # Connect to CloudSearch
+    print "Connecting to CloudSearch..."
+    connCS = boto.connect_cloudsearch2(aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+                                       aws_secret_access_key='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')
+    print "Connected!\n"
+
+    # Search domain
+    print "Searching for domain..."
+    domain = connCS.lookup('twitter-app')
+    print "Domain founded: ", domain.name
+
+    doc_service = domain.get_document_service()
+    # for r in results:
+    doc_service.add(results.get('id_stat'), results)
+    result = doc_service.commit()
+    print "Tudo la dentro ", result
 
 
 # This function creates a new DynamoDB database

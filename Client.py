@@ -77,24 +77,24 @@ def home():
             print "----------------------------------------------"
             print "          Consumer Completed!"
             print "----------------------------------------------"
-            break
+        break
 
         #Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
         # Define hash_key
-        hash = today + '/' + keyy
+        #hash = today + '/' + keyy
         # Define range_key
-        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+        #range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
 
         # Check if hash_key exists
-        if table.has_item(hash, range, True) == False:
-            print "Key does not exist!\n"
-        else:
-            break
-
+        #if table.has_item(hash, range, True) == False:
+            #print "Key does not exist!\n"
+        #else:
+            #break
 
     # Ir buscar resultados ao dynamodb
     # Get the result from table
-    results = table.get_item(hash_key=hash, range_key=range)
+    #results = table.get_item(hash_key=hash, range_key=range)
+
 
     print "----------------------------------------------"
     print "          Starting CloudSearch..."
@@ -111,12 +111,6 @@ def home():
     domain = connCS.lookup('twitter-app')
     print "Domain founded: ", domain.name
 
-    print "Meter merdas la pra dentro"
-    doc_service = domain.get_document_service()
-    # for r in results:
-    doc_service.add(results.get('id_stat'), results)
-    result = doc_service.commit()
-    print "Tudo la dentro ", result
 
     # Searching results
     print "Searching for '" + keyy + "'...\n"
