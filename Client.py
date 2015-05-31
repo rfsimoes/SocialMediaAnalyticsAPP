@@ -36,6 +36,18 @@ def home():
 
 
     while True:
+        # Ask user what he wants to do
+        while True:
+            try:
+                choice = int(raw_input("Please choose an option:\n[1] Download a new set of tweets\n[2] Search existing data\n>>> "))
+            except ValueError:
+                print "That's not a number!"
+            else:
+                if 1 <= choice <= 2:
+                    break
+                else:
+                    print 'Invalid option. Try again!'
+
         # Ask user which key he wants to search
         user_input = raw_input("Please enter a key to search [enter to exit]: ")
 
@@ -47,37 +59,39 @@ def home():
         # Define search key
         keyy = user_input
 
-        #TweetsListener
-        print "----------------------------------------------"
-        print "          Starting Listener..."
-        print "----------------------------------------------"
-        try:
-            thread.start_new_thread(Listener.run, (keyy,))
-        except:
-            print "Error thread Listener"
+        if choice == 1:
+            #TweetsListener
+            print "----------------------------------------------"
+            print "          Starting Listener..."
+            print "----------------------------------------------"
+            try:
+                thread.start_new_thread(Listener.run, (keyy,))
+            except:
+                print "Error thread Listener"
 
-        #TweetsConsumer
-        print "----------------------------------------------"
-        print "          Starting Consumer..."
-        print "----------------------------------------------"
-        Consumer.main(keyy)
-        print "----------------------------------------------"
-        print "          Consumer Completed!"
-        print "----------------------------------------------"
-        break
-
-        """"" Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
-        # Define hash_key
-        hash = today + '/' + keyy
-        # Define range_key
-        range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
-
-        # Check if hash_key exists
-        if table.has_item(hash,range,True) == False:
-            print "Key does not exist!\n"
-        else:
+            #TweetsConsumer
+            print "----------------------------------------------"
+            print "          Starting Consumer..."
+            print "----------------------------------------------"
+            Consumer.main(keyy)
+            print "----------------------------------------------"
+            print "          Consumer Completed!"
+            print "----------------------------------------------"
             break
-        """
+
+            """"" Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
+            # Define hash_key
+            hash = today + '/' + keyy
+            # Define range_key
+            range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
+
+            # Check if hash_key exists
+            if table.has_item(hash,range,True) == False:
+                print "Key does not exist!\n"
+            else:
+                break
+            """
+        break
 
     """ Ir buscar resultados ao dynamodb
     # Get the result from table
@@ -104,6 +118,9 @@ def home():
     search_service = domain.get_search_service()
     # Search for key and sort results by date
     results = search_service.search(q=keyy, sort=['id_stat asc'])
+    if results.hits == 0:
+        print "No results founded with search key '" + keyy + "'"
+        exit(0)
     print "We found " + str(results.hits) + " results!"
 
     # Show dates of results to users
