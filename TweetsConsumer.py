@@ -252,7 +252,7 @@ def postProcessing():
     # Update CloudSearch
     update_cloudsearch()
 
-"""
+
 def saveToFile(id_stat, item_data):
     string = ''
     string = string + id_stat + '\n'
@@ -265,10 +265,10 @@ def saveToFile(id_stat, item_data):
 
 
 def uploadToGlacier(id_stat):
-    glacier_connection = boto.connect_glacier("us-east-1", aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+    glacier_connection = boto.connect_glacier(aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
                                               aws_secret_access_key='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')
     vault = glacier_connection.get_vault("myvault")
-    archive_id = vault.upload_archive(id_stat + '.txt')"""
+    archive_id = vault.upload_archive('file')
 
 
 # This function adds an item to DynamoDB
@@ -296,9 +296,11 @@ def addItem(valuedic):
         'total_retweets': str(total_retweets),
         'hourly_aggregate': str(hourly_aggregate)
     }
-
-    """saveToFile(id_stat, item_data)
-    uploadToGlacier(id_stat)"""
+    print "Saving data to 'file'"
+    saveToFile(id_stat, item_data)
+    print "Uploading 'file' to Glacier"
+    uploadToGlacier(id_stat)
+    print "Finished uploading to Glacier"
 
     global hashDB
     global rangeDB
