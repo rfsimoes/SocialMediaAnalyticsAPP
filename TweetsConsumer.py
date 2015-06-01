@@ -1,17 +1,12 @@
-import datetime
-import boto.sqs
-from boto.sqs.message import Message
 import cPickle
 from datetime import date
 import json
-from topia.termextract import extract
 from collections import OrderedDict
-import re
-import ast
-import random
-import sys
-import unicodedata
+
+import boto.sqs
+from boto.sqs.message import Message
 import boto.dynamodb
+
 
 parseaddic = {}
 aggregatedic = {}
@@ -30,8 +25,8 @@ global rangeDB
 def connect():
     print 'Connecting to DynamoDB...'
     connDB = boto.dynamodb.connect_to_region('us-east-1',
-    aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
-    aws_secret_access_key='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')
+                                             aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+                                             aws_secret_access_key='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')
     print 'Connected!\n'
     return connDB
 
@@ -49,7 +44,7 @@ def setupConsumer(key):
     # _____ Initialize keyword list _____
     keyword = key
 
-    #_____ Load Sentiments Dictionary _____
+    # _____ Load Sentiments Dictionary _____
     sent_file = open('AFINN-111.txt')
     sent_lines = sent_file.readlines()
     for line in sent_lines:
@@ -57,7 +52,7 @@ def setupConsumer(key):
         TERMS[s[0].strip()] = int(s[1].strip())
     sent_file.close()
 
-    #_____ Connect to SQS Queue _____
+    # _____ Connect to SQS Queue _____
     print 'Connecting to SQS...'
     conn = boto.sqs.connect_to_region(
         "us-east-1",
@@ -69,7 +64,7 @@ def setupConsumer(key):
     queuecount = q.count()
     print "Queue count = " + str(queuecount) + "\n"
 
-    #_____ Connect to DynamoDB _____
+    # _____ Connect to DynamoDB _____
     connDB = connect()
     table = connDB.get_table('twitter_stats_table')
 
@@ -109,7 +104,7 @@ def parseTweet(tweet):
         parseaddic['toptweets'] = retweetdic
 
 
-    #_____ Text Sentiment _____
+    # _____ Text Sentiment _____
     if tweet.has_key('text'):
         text = tweet['text'].encode('utf-8', errors='ignore')
         parseaddic['text'] = text
@@ -126,7 +121,7 @@ def parseTweet(tweet):
         elif sentiment == 0:
             parseaddic['neutralsentiment'] = 1
 
-    #_____ Hashtags _____
+    # _____ Hashtags _____
     if tweet.has_key('entities'):
         res1 = tweet['entities']
         taglist = res1['hashtags']
@@ -144,32 +139,33 @@ def analyzeTweet(tweetdic):
 
     if not aggregatedic.has_key(keyword):
         valuedic = {'totaltweets': 0,
-                    'positivesentiment': 0, 'negativesentiment': 0,'neutralsentiment':0, 'hashtags': {}, 'toptweets': {},
+                    'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0, 'hashtags': {},
+                    'toptweets': {},
                     'totalretweets': 0, 'hourlyaggregate': {
-        '0': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '1': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '2': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '3': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '4': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '5': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '6': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '7': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '8': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '9': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '10': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '11': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '12': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '13': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '14': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '15': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '16': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '17': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '18': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '19': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '20': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '21': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '22': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
-        '23': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0}
+            '0': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '1': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '2': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '3': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '4': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '5': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '6': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '7': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '8': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '9': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '10': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '11': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '12': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '13': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '14': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '15': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '16': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '17': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '18': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '19': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '20': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '21': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '22': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0},
+            '23': {'totaltweets': 0, 'positivesentiment': 0, 'negativesentiment': 0, 'neutralsentiment': 0}
         }}
 
         aggregatedic[keyword] = valuedic
@@ -181,14 +177,14 @@ def analyzeTweet(tweetdic):
     valuedic['negativesentiment'] += tweetdic['negativesentiment']
     valuedic['neutralsentiment'] += tweetdic['neutralsentiment']
 
-    #_____ Hourly Aggregate _____
+    # _____ Hourly Aggregate _____
     hour = tweetdic['hour']
     valuedic['hourlyaggregate'][hour]['positivesentiment'] += tweetdic['positivesentiment']
     valuedic['hourlyaggregate'][hour]['negativesentiment'] += tweetdic['negativesentiment']
     valuedic['hourlyaggregate'][hour]['neutralsentiment'] += tweetdic['neutralsentiment']
     valuedic['hourlyaggregate'][hour]['positivesentiment'] += 1
 
-    #_____ Top Hashtags _____
+    # _____ Top Hashtags _____
     tagsdic = valuedic['hashtags']
     for tag in tweetdic['hashtags']:
         if tagsdic.has_key(tag):
@@ -196,7 +192,7 @@ def analyzeTweet(tweetdic):
         else:
             tagsdic[tag] = 1
 
-    #_____ Top Tweets _____
+    # _____ Top Tweets _____
     if tweetdic.has_key('toptweets'):
         if tweetdic['toptweets'].has_key('retweetscreenname'):
             toptweetsdic = valuedic['toptweets']
@@ -207,13 +203,13 @@ def analyzeTweet(tweetdic):
             else:
                 toptweetsdic[retweetkey] = tweetdic['toptweets']
 
-    #_____ Aggregate _____
+    # _____ Aggregate _____
     aggregatedic[keyword] = valuedic
 
 
 ######## Post Processing Function ########
 def postProcessing():
-    #print aggregatedic
+    # print aggregatedic
     valuedic = aggregatedic[keyword]
 
     # _____ Top 10 Hashtags _____
@@ -229,7 +225,7 @@ def postProcessing():
 
     valuedic['hashtags'] = tophashtagsdic
 
-    #_____ Total Retweets & Top 10 Tweets _____
+    # _____ Total Retweets & Top 10 Tweets _____
     toptweetsdic = valuedic['toptweets']
     for key in toptweetsdic:
         valuedic['totaltweets'] += toptweetsdic[key]['retweetcount']
@@ -244,20 +240,38 @@ def postProcessing():
         sortedtoptweetsdic[k] = toptweetsdic[k]
 
     valuedic['toptweets'] = sortedtoptweetsdic
-    #print valuedic['toptweets']
+    # print valuedic['toptweets']
 
-    #_____ Create Key for DynamoDB _____
+    # _____ Create Key for DynamoDB _____
     valuedic['_id'] = str(date.today()) + "/" + keyword
     valuedic['metadata'] = {'date': str(date.today()), 'key': keyword}
 
-    #_____ Insert into DynamoDB _____
+    # _____ Insert into DynamoDB _____
     addItem(valuedic)
 
     # Update CloudSearch
     update_cloudsearch()
 
+"""
+def saveToFile(id_stat, item_data):
+    string = ''
+    string = string + id_stat + '\n'
+    for key, value in item_data.items():
+        string = string + key + ' = ' + value + '\n'
 
-#This function adds an item to DynamoDB
+    f = open("file", 'w')
+    f.write("file")
+    f.close()
+
+
+def uploadToGlacier(id_stat):
+    glacier_connection = boto.connect_glacier("us-east-1", aws_access_key_id='AKIAIXQMLV2XPFQ2NFRQ',
+                                              aws_secret_access_key='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')
+    vault = glacier_connection.get_vault("myvault")
+    archive_id = vault.upload_archive(id_stat + '.txt')"""
+
+
+# This function adds an item to DynamoDB
 def addItem(valuedic):
     print 'Inserting data on DynamoDB...'
     id_stat = valuedic['_id']
@@ -273,7 +287,7 @@ def addItem(valuedic):
     table = connDB.get_table('twitter_stats_table')
     item_data = {
         'total_tweets': str(total_tweets),
-        'positive_sentiment':  str(positive_tweets),
+        'positive_sentiment': str(positive_tweets),
         'neutral_sentiment': str(neutral_tweets),
         'negative_sentiment': str(negative_tweets),
         'hashtags': str(hashtags),
@@ -281,6 +295,9 @@ def addItem(valuedic):
         'total_retweets': str(total_retweets),
         'hourly_aggregate': str(hourly_aggregate)
     }
+
+    """saveToFile(id_stat, item_data)
+    uploadToGlacier(id_stat)"""
 
     global hashDB
     global rangeDB
@@ -315,7 +332,7 @@ def update_cloudsearch():
     # for r in results:
     doc_service.add(results.get('id_stat'), results)
     result = doc_service.commit()
-    print "Tudo la dentro ", result
+    #print "Tudo la dentro ", result
 
 
 # This function creates a new DynamoDB database
@@ -328,11 +345,12 @@ def create_database():
         range_key_proto_value=str
     )
     table = connDB.create_table(
-        name = 'twitter_stats_table',
-        schema = schemaTable,
-        read_units = 1,
-        write_units = 1
+        name='twitter_stats_table',
+        schema=schemaTable,
+        read_units=1,
+        write_units=1
     )
+
 
 ######## Main Function: Consigure consumeCount ########
 def main(keyy):
@@ -345,9 +363,9 @@ def main(keyy):
 
     print "Consuming " + str(consumeCount) + " feed..."
 
-    consumeCount = consumeCount / 10  #get 10 in each batch
+    consumeCount = consumeCount / 10  # get 10 in each batch
     for i in range(consumeCount):
-        rs = q.get_messages(10)  #gets max 10 msgs at a time
+        rs = q.get_messages(10)  # gets max 10 msgs at a time
 
         if len(rs) > 0:
             for m in rs:
