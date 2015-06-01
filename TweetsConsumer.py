@@ -274,6 +274,7 @@ def uploadToGlacier(id_stat):
 # This function adds an item to DynamoDB
 def addItem(valuedic):
     print 'Inserting data on DynamoDB...'
+    # Define statistics variables
     id_stat = valuedic['_id']
     total_tweets = valuedic['totaltweets']
     positive_tweets = valuedic['positivesentiment']
@@ -328,11 +329,11 @@ def update_cloudsearch():
     domain = connCS.lookup('twitter-app')
     print "Domain founded: ", domain.name
 
+    print "Updating CloudSearch..."
     doc_service = domain.get_document_service()
-    # for r in results:
     doc_service.add(results.get('id_stat'), results)
-    result = doc_service.commit()
-    #print "Tudo la dentro ", result
+    doc_service.commit()
+    print "Updated!"
 
 
 # This function creates a new DynamoDB database
