@@ -59,43 +59,37 @@ def home():
         # Define search key
         keyy = user_input
 
+        # If user choose to download a new set of tweets
         if choice == 1:
-            #TweetsListener
-            print "----------------------------------------------"
-            print "          Starting Listener..."
-            print "----------------------------------------------"
-            try:
-                thread.start_new_thread(Listener.run, (keyy,))
-            except:
-                print "Error thread Listener"
-
-            #TweetsConsumer
-            print "----------------------------------------------"
-            print "          Starting Consumer..."
-            print "----------------------------------------------"
-            Consumer.main(keyy)
-            print "----------------------------------------------"
-            print "          Consumer Completed!"
-            print "----------------------------------------------"
-        break
-
-        #Se se forem buscar as coisas diretamente ao dynamodb, temos de definir a hash_key e a range_key
-        # Define hash_key
-        #hash = today + '/' + keyy
-        # Define range_key
-        #range = "{'date': '" + today + "', 'key': '" + keyy + "'}"
-
-        # Check if hash_key exists
-        #if table.has_item(hash, range, True) == False:
-            #print "Key does not exist!\n"
-        #else:
-            #break
-
-    # Ir buscar resultados ao dynamodb
-    # Get the result from table
-    #results = table.get_item(hash_key=hash, range_key=range)
+            download_tweets(keyy)
+        # If user choose to search existing data
+        else:
+            search_data(keyy)
 
 
+# This function invokes TweetsListener and TweetsConsumer in order to download a new set of tweets
+def download_tweets(key):
+    #TweetsListener
+    print "----------------------------------------------"
+    print "          Starting Listener..."
+    print "----------------------------------------------"
+    try:
+        thread.start_new_thread(Listener.run, (key,))
+    except:
+        print "Error thread Listener"
+
+    #TweetsConsumer
+    print "----------------------------------------------"
+    print "          Starting Consumer..."
+    print "----------------------------------------------"
+    Consumer.main(key)
+    print "----------------------------------------------"
+    print "          Consumer Completed!"
+    print "----------------------------------------------"
+
+
+# This function uses CloudSearch to search data based on a keyword
+def search_data(key):
     print "----------------------------------------------"
     print "          Starting CloudSearch..."
     print "----------------------------------------------"
@@ -113,12 +107,12 @@ def home():
 
 
     # Searching results
-    print "Searching for '" + keyy + "'...\n"
+    print "Searching for '" + key + "'...\n"
     search_service = domain.get_search_service()
     # Search for key and sort results by date
-    results = search_service.search(q=keyy, sort=['id_stat asc'])
+    results = search_service.search(q=key, sort=['id_stat asc'])
     if results.hits == 0:
-        print "No results founded with search key '" + keyy + "'"
+        print "No results founded with search key '" + key + "'"
         exit(0)
     print "We found " + str(results.hits) + " results!"
 
@@ -139,19 +133,21 @@ def home():
             else:
                 print 'Out of range. Try again!'
 
+    statistics(results, input_number)
 
+
+# This function calculates and shows statistics
+def statistics(results, index):
     # Calculate statistics
-    totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[input_number]
-    positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[input_number]
-    negativesentiment = map(lambda x: x["fields"]["negative_sentiment"], results)[input_number]
-    neutralsentiment = map(lambda x: x["fields"]["neutral_sentiment"], results)[input_number]
-
+    totaltweets = map(lambda x: x["fields"]["total_tweets"], results)[index]
+    positivesentiment = map(lambda x: x["fields"]["positive_sentiment"], results)[index]
+    negativesentiment = map(lambda x: x["fields"]["negative_sentiment"], results)[index]
+    neutralsentiment = map(lambda x: x["fields"]["neutral_sentiment"], results)[index]
 
     #totaltweets = results['total_tweets']
     #positivesentiment = results['positive_sentiment']
     #negativesentiment = results['negative_sentiment']
     #neutralsentiment = results['neutral_sentiment']
-
 
     pospercent = float(positivesentiment) * 100 / float(totaltweets)
     negpercent = float(negativesentiment) * 100 / float(totaltweets)
